@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -126,55 +126,57 @@ const HeroSection: React.FC = () => {
         </motion.p>
         
         {/* Animated CTA button */}
-        <motion.button
-          className="relative px-8 py-4 text-lg font-medium rounded-full bg-gradient-to-r from-ev-blue to-ev-green text-white overflow-hidden group"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ 
-            delay: 1.5,
-            type: "spring",
-            stiffness: 400,
-            damping: 10
-          }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {/* Inner glow effect */}
-          <motion.span 
-            className="absolute inset-0 bg-white opacity-0 rounded-full"
-            animate={{ 
-              opacity: [0, 0.2, 0],
-              scale: [1, 1.05, 1],
-            }}
+        <Link to="/benefits">
+          <motion.button
+            className="relative px-8 py-4 text-lg font-medium rounded-full bg-gradient-to-r from-ev-blue to-ev-green text-white overflow-hidden group"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "loop"
+              delay: 1.5,
+              type: "spring",
+              stiffness: 400,
+              damping: 10
             }}
-          />
-          
-          {/* Button content */}
-          <span className="relative z-10 flex items-center gap-2">
-            Start Exploring
-            <motion.span
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {/* Inner glow effect */}
+            <motion.span 
+              className="absolute inset-0 bg-white opacity-0 rounded-full"
               animate={{ 
-                y: [0, -5, 0],
+                opacity: [0, 0.2, 0],
+                scale: [1, 1.05, 1],
               }}
               transition={{ 
-                duration: 1.5,
+                duration: 2,
                 repeat: Infinity,
                 repeatType: "loop"
               }}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.span>
-          </span>
-          
-          {/* Hover effect */}
-          <motion.span 
-            className="absolute inset-0 bg-gradient-to-r from-ev-green to-ev-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
-        </motion.button>
+            />
+            
+            {/* Button content */}
+            <span className="relative z-10 flex items-center gap-2">
+              Explore Benefits
+              <motion.span
+                animate={{ 
+                  y: [0, -5, 0],
+                }}
+                transition={{ 
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "loop"
+                }}
+              >
+                <ChevronDown className="w-5 h-5" />
+              </motion.span>
+            </span>
+            
+            {/* Hover effect */}
+            <motion.span 
+              className="absolute inset-0 bg-gradient-to-r from-ev-green to-ev-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            />
+          </motion.button>
+        </Link>
 
         {/* Scroll indicator */}
         <motion.div 

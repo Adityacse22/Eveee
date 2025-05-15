@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import LocationButton from '../components/ui/LocationButton';
 import StationList from '../components/stations/StationList';
 import BookingForm from '../components/booking/BookingForm';
@@ -53,7 +54,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full pb-24 overflow-x-hidden">
+    <div className="min-h-screen w-full pb-0 overflow-x-hidden">
       <Navbar hasScrolled={hasScrolled} />
       
       {/* Hero Section */}
@@ -129,15 +130,10 @@ const Index = () => {
             {isBookingOpen && <BookingForm />}
           </motion.div>
         </motion.div>
-        
-        {/* Footer with app information */}
-        <motion.footer 
-          className="mt-16 text-center"
-          variants={itemVariants}
-        >
-          <p className="text-white/50 text-sm">EV Charge Platform - Find and book charging stations</p>
-        </motion.footer>
       </motion.main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

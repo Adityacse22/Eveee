@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import SearchBar from "../ui/SearchBar";
 import { Menu, User, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
   hasScrolled?: boolean;
@@ -12,12 +13,14 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     // Check system preference or saved preference when component mounts
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('light-mode', savedTheme !== 'dark');
     } else {
       // Default to dark mode as our app is designed for it
       setIsDarkMode(true);
@@ -34,6 +37,10 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
     
     // Show feedback to user
     toast.success(`${newMode ? 'Dark' : 'Light'} mode activated`);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const navVariants = {
@@ -108,7 +115,7 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
           className="text-lg font-bold gradient-text hidden sm:block"
           variants={itemVariants}
         >
-          EV Charge
+          Evee
         </motion.h1>
       </motion.div>
       
@@ -153,18 +160,20 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
         
         {/* User Button */}
         <motion.div whileTap={{ scale: 0.9 }}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="glass-button rounded-full w-10 h-10"
-          >
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          <Link to="/login">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="glass-button rounded-full w-10 h-10"
             >
-              <User className="h-5 w-5 text-white" />
-            </motion.div>
-          </Button>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <User className="h-5 w-5 text-white" />
+              </motion.div>
+            </Button>
+          </Link>
         </motion.div>
         
         {/* Menu Button (Mobile) */}
@@ -176,8 +185,11 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
             variant="ghost" 
             size="icon"
             className="glass-button rounded-full w-10 h-10"
+            onClick={toggleMenu}
           >
             <motion.div
+              animate={{ rotate: isMenuOpen ? 90 : 0 }}
+              transition={{ duration: 0.3 }}
               whileHover={{ 
                 rotate: [0, 10, -10, 0],
                 transition: { duration: 0.3 }
@@ -188,6 +200,23 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
           </Button>
         </motion.div>
       </motion.div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <motion.div 
+          className="absolute top-full left-0 right-0 glass-card mt-2 p-4 flex flex-col gap-2 md:hidden"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        >
+          <Link to="/" className="text-white hover:text-ev-blue transition-colors p-2">Home</Link>
+          <Link to="/stations" className="text-white hover:text-ev-blue transition-colors p-2">Station Finder</Link>
+          <Link to="/booking" className="text-white hover:text-ev-blue transition-colors p-2">Booking</Link>
+          <Link to="/pricing" className="text-white hover:text-ev-blue transition-colors p-2">Pricing</Link>
+          <Link to="/login" className="text-white hover:text-ev-blue transition-colors p-2">Login / Sign Up</Link>
+        </motion.div>
+      )}
     </motion.nav>
   );
 };
