@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import SearchBar from "../ui/SearchBar";
 import { Menu, User, Sun, Moon } from "lucide-react";
+import { toast } from "sonner";
 
 interface NavbarProps {
   hasScrolled?: boolean;
@@ -12,8 +13,27 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
+  useEffect(() => {
+    // Check system preference or saved preference when component mounts
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+    } else {
+      // Default to dark mode as our app is designed for it
+      setIsDarkMode(true);
+    }
+  }, []);
+
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    
+    // Update CSS variables or classes if needed for actual theme change
+    document.documentElement.classList.toggle('light-mode', !newMode);
+    
+    // Show feedback to user
+    toast.success(`${newMode ? 'Dark' : 'Light'} mode activated`);
   };
 
   const navVariants = {
@@ -106,7 +126,6 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
         {/* Dark Mode Toggle */}
         <motion.div
           className="relative"
-          whileTap={{ scale: 0.9 }}
         >
           <motion.button
             className="glass-button rounded-full w-10 h-10 flex items-center justify-center"
@@ -116,6 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ hasScrolled = false }) => {
                 ? "0 0 15px 5px rgba(30, 174, 219, 0.4)" 
                 : "0 0 15px 5px rgba(255, 166, 0, 0.4)" 
             }}
+            whileTap={{ scale: 0.9 }}
           >
             <motion.div
               initial={false}

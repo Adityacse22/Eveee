@@ -3,23 +3,83 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const LocationButton: React.FC = () => {
   const [isActivated, setIsActivated] = useState(false);
   const [showRipple, setShowRipple] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleLocationClick = () => {
-    // Simulate location detection
-    setIsActivated(true);
-    setShowRipple(true);
+    setIsLoading(true);
     
-    // Handle location detection here
-    console.log("Getting current location");
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      setIsLoading(false);
+      return;
+    }
     
-    // Reset ripple after animation
-    setTimeout(() => {
-      setShowRipple(false);
-    }, 2000);
+    navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+      if (permissionStatus.state === 'granted') {
+        // Permission already granted
+        getLocation();
+      } else if (permissionStatus.state === 'prompt') {
+        // Will show prompt
+        toast.info("Please allow location access");
+        getLocation();
+      } else if (permissionStatus.state === 'denied') {
+        toast.error("Location permissions denied. Please enable location in your browser settings.");
+        setIsLoading(false);
+      }
+      
+      permissionStatus.onchange = () => {
+        if (permissionStatus.state === 'granted') {
+          getLocation();
+        }
+      };
+    });
+  };
+  
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Successfully got location
+        const { latitude, longitude } = position.coords;
+        console.log(`Location: ${latitude}, ${longitude}`);
+        
+        // Show success animation
+        setIsActivated(true);
+        setShowRipple(true);
+        setIsLoading(false);
+        
+        // Store location in localStorage for persistence
+        localStorage.setItem('userLocation', JSON.stringify({ latitude, longitude }));
+        
+        toast.success("Location successfully detected!");
+        
+        // Reset ripple after animation
+        setTimeout(() => {
+          setShowRipple(false);
+        }, 2000);
+      },
+      (error) => {
+        setIsLoading(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error("Location request was denied");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error("Location information is unavailable");
+            break;
+          case error.TIMEOUT:
+            toast.error("Location request timed out");
+            break;
+          default:
+            toast.error("An unknown error occurred");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   return (
@@ -37,6 +97,7 @@ const LocationButton: React.FC = () => {
       <Button 
         className={`glass-button flex items-center gap-2 px-6 py-3 ${isActivated ? "" : "animate-pulse-glow"}`}
         onClick={handleLocationClick}
+        disabled={isLoading}
       >
         <motion.div
           animate={isActivated ? {
@@ -51,7 +112,7 @@ const LocationButton: React.FC = () => {
         </motion.div>
         
         <span className={`${isActivated ? "text-ev-green" : "text-white"}`}>
-          {isActivated ? "Location Active" : "Use My Location"}
+          {isLoading ? "Detecting..." : isActivated ? "Location Active" : "Use My Location"}
         </span>
         
         {/* Success checkmark for activated state */}
@@ -91,6 +152,24 @@ const LocationButton: React.FC = () => {
               transition={{ duration: 1, delay: 0.3 }}
             />
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Loading animation */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div 
+            className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

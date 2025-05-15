@@ -1,112 +1,150 @@
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-type FilterOption = {
+interface FilterOption {
+  id: string;
   label: string;
-  active: boolean;
-};
+  value: string;
+}
+
+const chargerTypes: FilterOption[] = [
+  { id: 'all', label: 'All', value: 'all' },
+  { id: 'type1', label: 'Type 1', value: 'type1' },
+  { id: 'type2', label: 'Type 2', value: 'type2' },
+  { id: 'ccs', label: 'CCS', value: 'ccs' },
+  { id: 'chademo', label: 'CHAdeMO', value: 'chademo' }
+];
 
 const FilterBar: React.FC = () => {
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterOption[]>([
-    { label: 'AC Chargers', active: false },
-    { label: 'DC Fast Charging', active: false },
-    { label: 'Available Now', active: true },
-    { label: 'Free Charging', active: false },
-  ]);
+  const [activeChargerType, setActiveChargerType] = useState<string>('all');
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [selectedPower, setSelectedPower] = useState<string[]>([]);
+  const [showFastCharging, setShowFastCharging] = useState<boolean>(false);
 
-  const toggleFilter = (index: number) => {
-    const newFilters = [...filters];
-    newFilters[index].active = !newFilters[index].active;
-    setFilters(newFilters);
+  const handleChargerTypeChange = (value: string) => {
+    setActiveChargerType(value);
+  };
+
+  const toggleFilter = () => {
+    setIsFilterOpen(!isFilterOpen);
   };
 
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-2">
-        <Button 
-          variant="ghost"
-          className="text-white/70 p-0 flex items-center gap-2 hover:text-white"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <motion.div
-            animate={{ rotate: showFilters ? [0, 180, 360] : 0 }}
-            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
-          >
-            <Filter className="h-4 w-4" />
-          </motion.div>
-          <span>Filters</span>
-          <motion.div
-            animate={{ rotate: showFilters ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ChevronDown className="h-4 w-4" />
-          </motion.div>
-        </Button>
+    <div className="mb-4">
+      {/* Mobile Filter Toggle */}
+      <div className="flex justify-between items-center mb-3 md:hidden">
+        <h3 className="text-lg font-medium text-white/90">Chargers</h3>
         
-        <Button 
-          variant="ghost" 
-          className="text-ev-blue hover:text-ev-blue/80 p-0 text-sm"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Clear All
-        </Button>
-      </div>
-
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div 
-            className="flex flex-wrap gap-2 py-2"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
+        {/* Fix: Wrap Button with motion.div for animations */}
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="ghost"
+            className="glass-button px-3 py-1 text-sm"
+            onClick={toggleFilter}
           >
-            {filters.map((filter, index) => (
-              <motion.button
-                key={filter.label}
-                className={`px-3 py-1 rounded-full text-sm transition-all overflow-hidden relative ${
-                  filter.active 
-                    ? 'bg-ev-blue text-white shadow-neon-blue' 
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'
+            Filters
+            <motion.svg
+              className="ml-1 w-4 h-4"
+              animate={{ rotate: isFilterOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </motion.svg>
+          </Button>
+        </motion.div>
+      </div>
+      
+      {/* Filter Content */}
+      <motion.div
+        className={`glass-card p-3 overflow-hidden ${isFilterOpen ? 'block' : 'hidden'} md:block`}
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ 
+          height: isFilterOpen ? 'auto' : 0,
+          opacity: isFilterOpen ? 1 : 0,
+          display: isFilterOpen ? 'block' : 'none'
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="space-y-4">
+          {/* Charger Types */}
+          <div>
+            <h4 className="text-sm font-medium text-white/80 mb-2">Charger Type</h4>
+            <ToggleGroup 
+              type="single" 
+              value={activeChargerType} 
+              onValueChange={(value) => {
+                if (value) handleChargerTypeChange(value);
+              }}
+              className="flex flex-wrap gap-2"
+            >
+              {chargerTypes.map((type) => (
+                <ToggleGroupItem
+                  key={type.id}
+                  value={type.value}
+                  className={`rounded-full glass-button text-xs px-3 py-1 ${
+                    activeChargerType === type.value ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
+                  }`}
+                >
+                  {type.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+          
+          {/* Power Range */}
+          <div>
+            <h4 className="text-sm font-medium text-white/80 mb-2">Power Range</h4>
+            <ToggleGroup
+              type="multiple"
+              value={selectedPower}
+              onValueChange={setSelectedPower}
+              className="flex flex-wrap gap-2"
+            >
+              <ToggleGroupItem
+                value="slow"
+                className={`rounded-full glass-button text-xs px-3 py-1 ${
+                  selectedPower.includes('slow') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
                 }`}
-                onClick={() => toggleFilter(index)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
               >
-                {/* Ripple effect */}
-                {filter.active && (
-                  <motion.span
-                    className="absolute inset-0 bg-white"
-                    initial={{ scale: 0, opacity: 0.7 }}
-                    animate={{ scale: 1.5, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                )}
-                
-                {filter.label}
-                
-                {/* Animated indicator */}
-                {filter.active && (
-                  <motion.span
-                    className="inline-block w-1 h-1 bg-white rounded-full ml-1"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    layoutId="activeIndicator"
-                  />
-                )}
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                Slow (≤ 7kW)
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="medium"
+                className={`rounded-full glass-button text-xs px-3 py-1 ${
+                  selectedPower.includes('medium') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
+                }`}
+              >
+                Medium (≤ 22kW)
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="fast"
+                className={`rounded-full glass-button text-xs px-3 py-1 ${
+                  selectedPower.includes('fast') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
+                }`}
+              >
+                Fast (≤ 50kW)
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="superfast"
+                className={`rounded-full glass-button text-xs px-3 py-1 ${
+                  selectedPower.includes('superfast') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
+                }`}
+              >
+                Ultra (> 50kW)
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

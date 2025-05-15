@@ -37,6 +37,36 @@
     --radius: 1rem;
   }
 
+  .light-mode {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 196 76% 49%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 162 84% 39%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 24 94% 53%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 196 76% 49%;
+  }
+
   * {
     @apply border-border;
     font-family: 'Inter', sans-serif;
@@ -46,6 +76,10 @@
     @apply bg-gradient-to-b from-ev-navy to-black text-foreground min-h-screen scroll-smooth;
     perspective: 1000px;
     overflow-x: hidden;
+  }
+
+  .light-mode body {
+    @apply bg-gradient-to-b from-white to-gray-100 text-foreground;
   }
 
   ::-webkit-scrollbar {
@@ -70,17 +104,33 @@
   .glass-card {
     @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg transition-all duration-300;
   }
+
+  .light-mode .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200 shadow-lg;
+  }
   
   .glass-morphism-3d {
     @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg transition-all duration-300 preserve-3d transform-3d;
+  }
+
+  .light-mode .glass-morphism-3d {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200;
   }
   
   .glass-button {
     @apply bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-full transition-all duration-300 shadow-lg hover:shadow-neon-blue;
   }
 
+  .light-mode .glass-button {
+    @apply bg-white/60 hover:bg-white/70 backdrop-blur-md border border-gray-200 text-gray-700 hover:shadow-blue-300/50;
+  }
+
   .glass-input {
     @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-ev-blue/50 transition-all;
+  }
+
+  .light-mode .glass-input {
+    @apply bg-white/60 border border-gray-200 text-gray-700 placeholder-gray-400 focus:ring-ev-blue/50;
   }
 
   .gradient-text {
@@ -93,6 +143,10 @@
   
   .shimmer-effect {
     @apply before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full before:animate-[shimmer_1.5s_infinite];
+  }
+
+  .light-mode .shimmer-effect {
+    @apply before:via-gray-200/50;
   }
 }
 
