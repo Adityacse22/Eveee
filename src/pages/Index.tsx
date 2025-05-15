@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
-import MapView from '../components/map/MapView';
 import LocationButton from '../components/ui/LocationButton';
 import StationList from '../components/stations/StationList';
 import BookingForm from '../components/booking/BookingForm';
@@ -28,34 +27,27 @@ const Index = () => {
           <LocationButton />
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <MapView />
-            
-            {/* Mobile view station toggle button */}
-            <div className="md:hidden mt-4 flex justify-center">
-              <button 
-                className="glass-button py-2 px-4 flex items-center gap-2"
-                onClick={toggleBooking}
-              >
-                <span>{isBookingOpen ? "View Map" : "View Stations"}</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Mobile view station list or booking (conditionally rendered) */}
-            <div className={`md:hidden mt-6 ${isBookingOpen ? 'block' : 'hidden'}`}>
-              {isBookingOpen ? <BookingForm /> : <StationList />}
-            </div>
+        <div className="grid grid-cols-1 gap-6">
+          <div className="glass-card p-5 h-full">
+            <StationList />
           </div>
           
-          {/* Desktop sidebar for station list */}
-          <div className="hidden md:block">
-            <div className="glass-card p-5 h-full">
-              <StationList />
-            </div>
+          {/* Mobile view station toggle button */}
+          <div className="md:hidden mt-4 flex justify-center">
+            <button 
+              className="glass-button py-2 px-4 flex items-center gap-2"
+              onClick={toggleBooking}
+            >
+              <span>{isBookingOpen ? "View Stations" : "Book Station"}</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Mobile view booking (conditionally rendered) */}
+          <div className={`md:hidden mt-6 ${isBookingOpen ? 'block' : 'hidden'}`}>
+            {isBookingOpen && <BookingForm />}
           </div>
         </div>
         
