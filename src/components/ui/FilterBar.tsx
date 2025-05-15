@@ -115,7 +115,7 @@ const FilterBar: React.FC = () => {
                   selectedPower.includes('slow') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
                 }`}
               >
-                Slow (≤ 7kW)
+                Slow (&lt;= 7kW)
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="medium"
@@ -123,7 +123,7 @@ const FilterBar: React.FC = () => {
                   selectedPower.includes('medium') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
                 }`}
               >
-                Medium (≤ 22kW)
+                Medium (&lt;= 22kW)
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="fast"
@@ -131,7 +131,7 @@ const FilterBar: React.FC = () => {
                   selectedPower.includes('fast') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
                 }`}
               >
-                Fast (≤ 50kW)
+                Fast (&lt;= 50kW)
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="superfast"
@@ -139,7 +139,7 @@ const FilterBar: React.FC = () => {
                   selectedPower.includes('superfast') ? 'bg-ev-blue/30 border-ev-blue text-white' : 'text-white/70'
                 }`}
               >
-                Ultra (> 50kW)
+                Ultra (&gt; 50kW)
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
