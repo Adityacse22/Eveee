@@ -116,6 +116,14 @@ export default {
 					to: { 
 						opacity: "1" 
 					},
+				},
+				"text-shimmer": {
+					"0%": {
+						backgroundPosition: "-200% 0"
+					},
+					"100%": {
+						backgroundPosition: "200% 0"
+					}
 				}
 			},
 			animation: {
@@ -124,19 +132,53 @@ export default {
 				"pulse-glow": 'pulse-glow 2s infinite',
 				"float": 'float 6s ease-in-out infinite',
 				"slide-up": 'slide-up 0.5s ease-out',
-				"fade-in": 'fade-in 0.5s ease-out'
+				"fade-in": 'fade-in 0.5s ease-out',
+				"text-shimmer": "text-shimmer 6s infinite"
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'gradient-radial-to-tr': 'radial-gradient(115% 90% at 0% 100%, var(--tw-gradient-stops))',
 				'blue-green-gradient': 'linear-gradient(135deg, #1EAEDB 0%, #10B981 100%)',
 				'dark-gradient': 'linear-gradient(to bottom, #1A1F2C 0%, #121318 100%)',
+				'neon-glow': 'linear-gradient(90deg, #1EAEDB 0%, #10B981 50%, #1EAEDB 100%)',
 			},
 			boxShadow: {
 				'neon-blue': '0 0 15px 5px rgba(30, 174, 219, 0.3)',
 				'neon-green': '0 0 15px 5px rgba(16, 185, 129, 0.3)',
+				'inner-glow': 'inset 0 0 20px 5px rgba(30, 174, 219, 0.15)',
+				'3d': '0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 0 5px rgba(0, 0, 0, 0.1)',
+			},
+			transitionTimingFunction: {
+				'spring-bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+				'elastic': 'cubic-bezier(0.25, 0.1, 0.25, 1.5)'
+			},
+			transformStyle: {
+				'3d': 'preserve-3d',
+			},
+			backfaceVisibility: {
+				'hidden': 'hidden',
 			},
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		function({ addUtilities }) {
+			const newUtilities = {
+				'.perspective': {
+					perspective: '1000px',
+				},
+				'.preserve-3d': {
+					transformStyle: 'preserve-3d',
+				},
+				'.backface-hidden': {
+					backfaceVisibility: 'hidden',
+				},
+				'.transform-3d': {
+					transformStyle: 'preserve-3d',
+				}
+			};
+			addUtilities(newUtilities);
+		}
+	],
 } satisfies Config;
