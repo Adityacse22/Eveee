@@ -4,11 +4,11 @@ import { motion } from 'framer-motion';
 import StationCard from './StationCard';
 import FilterBar from '../ui/FilterBar';
 
-// Sample data for demonstration
+// Enhanced station data with more realistic information
 const stationData = [
   {
     id: 1,
-    name: 'Tesla Supercharger',
+    name: 'Evee Supercharger',
     distance: '0.8 miles',
     chargerTypes: ['DC Fast', 'Type 2'],
     price: '$0.45',
@@ -32,6 +32,24 @@ const stationData = [
     price: '$0.50',
     available: false,
     rating: 4
+  },
+  {
+    id: 4,
+    name: 'Evee Downtown Hub',
+    distance: '3.1 miles',
+    chargerTypes: ['Type 2', 'CCS', 'CHAdeMO'],
+    price: '$0.38',
+    available: true,
+    rating: 5
+  },
+  {
+    id: 5,
+    name: 'GreenCharge Station',
+    distance: '4.0 miles',
+    chargerTypes: ['AC', 'Type 2'],
+    price: '$0.35',
+    available: false,
+    rating: 3
   }
 ];
 
@@ -89,7 +107,7 @@ const StationList: React.FC = () => {
       </motion.div>
       
       <motion.div 
-        className="mt-4 space-y-4 max-h-[500px] overflow-y-auto pr-2"
+        className="mt-4 space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
