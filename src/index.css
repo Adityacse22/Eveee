@@ -169,3 +169,23 @@ body {
 [data-radix-popper-content] {
   pointer-events: auto !important;
 }
+
+/* Fix Dialog pointer events */
+.DialogOverlay,
+.DialogContent {
+  pointer-events: auto !important;
+}
+
+/* Make sure button is interactive */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Fix ShadCN Dialog to ensure it's not blocked by pointer-events */
+[data-radix-dialog-content] {
+  pointer-events: auto !important;
+}
+
+[data-radix-dialog-overlay] {
+  pointer-events: auto !important;
+}

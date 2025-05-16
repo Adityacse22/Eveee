@@ -32,6 +32,8 @@ const StationCard: React.FC<StationCardProps> = ({
   const rotateY = useTransform(x, [-100, 100], [-5, 5]);
 
   const handleBookNow = () => {
+    if (!available) return;
+    
     setIsBooking(true);
     
     // Show the booking dialog after animation
@@ -184,53 +186,42 @@ const StationCard: React.FC<StationCardProps> = ({
             animate={{ width: isBooking ? "100%" : "auto" }}
             transition={{ duration: 0.3 }}
           >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Button 
-                      className={`bg-blue-green-gradient hover:opacity-90 transition-all text-white rounded-full px-4 py-2 text-sm shadow-neon-blue overflow-hidden`}
-                      onClick={handleBookNow}
-                      style={{ transform: "translateZ(20px)" }}
-                      disabled={!available || isBooking}
-                    >
-                      <motion.div
-                        className="flex items-center justify-center w-full"
-                        initial={false}
-                        animate={{ 
-                          scale: isBooking ? [1, 0.9, 1] : 1,
-                        }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        {isBooking ? (
-                          <motion.svg
-                            className="w-5 h-5 text-white"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            initial={{ pathLength: 0, opacity: 0 }}
-                            animate={{ pathLength: 1, opacity: 1 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                          >
-                            <motion.path
-                              d="M20 6L9 17L4 12"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </motion.svg>
-                        ) : (
-                          "Book Now"
-                        )}
-                      </motion.div>
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-black/80 border-ev-blue/30">
-                  {available ? 'Book your charging slot' : 'No ports available currently'}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button 
+              className={`bg-blue-green-gradient hover:opacity-90 transition-all text-white rounded-full px-4 py-2 text-sm shadow-neon-blue overflow-hidden ${!available && 'opacity-50 cursor-not-allowed'}`}
+              onClick={handleBookNow}
+              disabled={!available || isBooking}
+              aria-label={available ? "Book this charging station" : "Station not available"}
+            >
+              <motion.div
+                className="flex items-center justify-center w-full"
+                initial={false}
+                animate={{ 
+                  scale: isBooking ? [1, 0.9, 1] : 1,
+                }}
+                transition={{ duration: 0.4 }}
+              >
+                {isBooking ? (
+                  <motion.svg
+                    className="w-5 h-5 text-white"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <motion.path
+                      d="M20 6L9 17L4 12"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </motion.svg>
+                ) : (
+                  "Book Now"
+                )}
+              </motion.div>
+            </Button>
           </motion.div>
         </div>
         
@@ -254,7 +245,7 @@ const StationCard: React.FC<StationCardProps> = ({
 
       {/* Booking Dialog */}
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent className="bg-gradient-to-br from-black/80 to-black/95 border-ev-blue/30 text-white max-w-md w-[90vw] rounded-2xl shadow-neon-blue">
+        <DialogContent className="bg-gradient-to-br from-black/80 to-black/95 border-ev-blue/30 text-white max-w-md w-[90vw] rounded-2xl shadow-neon-blue pointer-events-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center gradient-text">Book {name}</DialogTitle>
           </DialogHeader>
