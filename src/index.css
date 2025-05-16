@@ -160,20 +160,16 @@ body {
   @apply text-ev-blue;
 }
 
-/* Fix calendar and tooltip pointer events */
+/* Fix dialog, calendar and tooltip pointer events */
 [data-radix-popper-content-wrapper], 
-[data-radix-tooltip-content] {
+[data-radix-tooltip-content],
+[data-radix-dialog-content],
+[data-radix-dialog-overlay],
+[data-radix-alert-dialog-content],
+[data-radix-alert-dialog-overlay],
+[data-radix-popover-content] {
   pointer-events: auto !important;
-}
-
-[data-radix-popper-content] {
-  pointer-events: auto !important;
-}
-
-/* Fix Dialog pointer events */
-.DialogOverlay,
-.DialogContent {
-  pointer-events: auto !important;
+  z-index: 999 !important;
 }
 
 /* Make sure button is interactive */
@@ -181,11 +177,8 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-/* Fix ShadCN Dialog to ensure it's not blocked by pointer-events */
-[data-radix-dialog-content] {
-  pointer-events: auto !important;
-}
-
-[data-radix-dialog-overlay] {
+/* Fix Dialog overlay */
+.DialogOverlay,
+.DialogContent {
   pointer-events: auto !important;
 }

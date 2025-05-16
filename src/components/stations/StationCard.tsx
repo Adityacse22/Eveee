@@ -243,7 +243,6 @@ const StationCard: React.FC<StationCardProps> = ({
         />
       </motion.div>
 
-      {/* Booking Dialog */}
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
         <DialogContent className="bg-gradient-to-br from-black/80 to-black/95 border-ev-blue/30 text-white max-w-md w-[90vw] rounded-2xl shadow-neon-blue pointer-events-auto">
           <DialogHeader>
