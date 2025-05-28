@@ -12,6 +12,8 @@ import HeroSection from '../components/ui/HeroSection';
 const Index = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [selectedStationId, setSelectedStationId] = useState<string>('');
+  const [selectedStationName, setSelectedStationName] = useState<string>('');
   
   // Handle scroll events
   useEffect(() => {
@@ -26,7 +28,11 @@ const Index = () => {
   }, []);
   
   // This would be triggered when a station is selected
-  const toggleBooking = () => {
+  const toggleBooking = (stationId?: string, stationName?: string) => {
+    if (stationId && stationName) {
+      setSelectedStationId(stationId);
+      setSelectedStationName(stationName);
+    }
     setIsBookingOpen(!isBookingOpen);
   };
 
@@ -89,7 +95,7 @@ const Index = () => {
               transition: { type: "spring", stiffness: 400, damping: 10 }
             }}
           >
-            <StationList />
+            <StationList onStationSelect={toggleBooking} />
           </motion.div>
           
           {/* Mobile view station toggle button */}
@@ -99,7 +105,7 @@ const Index = () => {
           >
             <motion.button 
               className="glass-button py-2 px-4 flex items-center gap-2"
-              onClick={toggleBooking}
+              onClick={() => toggleBooking()}
               whileTap={{ scale: 0.95 }}
               whileHover={{ 
                 scale: 1.05,
@@ -127,7 +133,14 @@ const Index = () => {
             initial="hidden"
             animate={isBookingOpen ? "visible" : "hidden"}
           >
-            {isBookingOpen && <BookingForm />}
+            {isBookingOpen && selectedStationId && (
+              <BookingForm 
+                stationId={selectedStationId}
+                stationName={selectedStationName}
+                price="$0.45"
+                onBookingComplete={() => setIsBookingOpen(false)}
+              />
+            )}
           </motion.div>
         </motion.div>
       </motion.main>

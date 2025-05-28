@@ -1,20 +1,103 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import StationCard from './StationCard';
 import FilterBar from '../ui/FilterBar';
 import { useStations } from '@/hooks/useStations';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
-const StationList: React.FC = () => {
+interface StationListProps {
+  onStationSelect?: (stationId: string, stationName: string) => void;
+}
+
+const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
   const { data: stations, isLoading, error } = useStations();
   const [visibleStations, setVisibleStations] = useState(stations || []);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [nearbyStations, setNearbyStations] = useState<any[]>([]);
+  const [searchingNearby, setSearchingNearby] = useState(false);
   
   React.useEffect(() => {
     if (stations) {
       setVisibleStations(stations);
     }
   }, [stations]);
+
+  // Get user location from localStorage or request it
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      setUserLocation(JSON.parse(savedLocation));
+    }
+  }, []);
+
+  const searchNearbyStations = async () => {
+    if (!userLocation) {
+      toast.error("Please enable location first");
+      return;
+    }
+
+    setSearchingNearby(true);
+    
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${userLocation.lat},${userLocation.lng}&radius=5000&type=gas_station&keyword=electric%20vehicle%20charging&key=AIzaSyCXo5DViPSCe7Ngv9xob9VaAS1kH7HyiPs`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch nearby stations');
+      }
+
+      const data = await response.json();
+      
+      if (data.results) {
+        const formattedStations = data.results.map((place: any) => ({
+          id: place.place_id,
+          name: place.name,
+          address: place.vicinity,
+          latitude: place.geometry.location.lat,
+          longitude: place.geometry.location.lng,
+          price_per_kwh: 0.40, // Default price
+          available: place.business_status === 'OPERATIONAL',
+          rating: place.rating || 4.0,
+          total_reviews: place.user_ratings_total || 0,
+          connectors: [
+            {
+              id: `${place.place_id}_1`,
+              station_id: place.place_id,
+              connector_type: 'Type 2',
+              power_output: 22,
+              available: true,
+              created_at: new Date().toISOString()
+            }
+          ]
+        }));
+
+        setNearbyStations(formattedStations);
+        setVisibleStations(formattedStations);
+        toast.success(`Found ${formattedStations.length} nearby charging stations`);
+      } else {
+        toast.error("No nearby charging stations found");
+      }
+    } catch (error) {
+      console.error('Error searching nearby stations:', error);
+      toast.error("Failed to search nearby stations. Using local data instead.");
+      setVisibleStations(stations || []);
+    } finally {
+      setSearchingNearby(false);
+    }
+  };
+
+  const showLocalStations = () => {
+    setVisibleStations(stations || []);
+    setNearbyStations([]);
+    toast.success("Showing local stations");
+  };
   
   // Animation variants
   const containerVariants = {
@@ -81,7 +164,7 @@ const StationList: React.FC = () => {
           whileHover={{ scale: 1.05, x: 5 }}
           transition={{ type: "spring", stiffness: 400 }}
         >
-          Nearby Stations
+          {nearbyStations.length > 0 ? 'Nearby Stations' : 'Available Stations'}
         </motion.h2>
         <motion.span 
           className="text-white/70 text-sm"
@@ -90,6 +173,31 @@ const StationList: React.FC = () => {
         >
           {visibleStations.length} stations found
         </motion.span>
+      </motion.div>
+
+      {/* Search buttons */}
+      <motion.div className="flex gap-2 mb-4" variants={itemVariants}>
+        <Button
+          onClick={searchNearbyStations}
+          disabled={!userLocation || searchingNearby}
+          className="glass-button flex items-center gap-2 text-sm"
+        >
+          {searchingNearby ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MapPin className="h-4 w-4" />
+          )}
+          {searchingNearby ? 'Searching...' : 'Find Nearby'}
+        </Button>
+        
+        {nearbyStations.length > 0 && (
+          <Button
+            onClick={showLocalStations}
+            className="glass-button text-sm"
+          >
+            Show Local Stations
+          </Button>
+        )}
       </motion.div>
       
       <motion.div variants={itemVariants}>
@@ -123,6 +231,7 @@ const StationList: React.FC = () => {
                 availablePorts={availableConnectors.length}
                 totalPorts={station.connectors.length}
                 address={station.address}
+                onBookNow={onStationSelect}
               />
             </motion.div>
           );

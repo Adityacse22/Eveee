@@ -3,16 +3,34 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  onSearch?: (query: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch && searchValue.trim()) {
+      onSearch(searchValue.trim());
+    }
+  };
 
   return (
-    <motion.div 
+    <motion.form 
+      onSubmit={handleSubmit}
       className="relative w-full"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -58,6 +76,7 @@ const SearchBar: React.FC = () => {
       {/* Clear button appears when there is text */}
       {searchValue && (
         <motion.button
+          type="button"
           className="absolute inset-y-0 right-3 flex items-center"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -76,7 +95,7 @@ const SearchBar: React.FC = () => {
           </motion.div>
         </motion.button>
       )}
-    </motion.div>
+    </motion.form>
   );
 };
 

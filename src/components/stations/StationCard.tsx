@@ -18,6 +18,7 @@ interface StationCardProps {
   availablePorts: number;
   totalPorts: number;
   address: string;
+  onBookNow?: (stationId: string, stationName: string) => void;
 }
 
 const StationCard: React.FC<StationCardProps> = ({
@@ -30,7 +31,8 @@ const StationCard: React.FC<StationCardProps> = ({
   rating,
   availablePorts,
   totalPorts,
-  address
+  address,
+  onBookNow
 }) => {
   const [isBooking, setIsBooking] = useState(false);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
@@ -47,7 +49,11 @@ const StationCard: React.FC<StationCardProps> = ({
     // Show the booking dialog after animation
     setTimeout(() => {
       setIsBooking(false);
-      setShowBookingDialog(true);
+      if (onBookNow) {
+        onBookNow(stationId, name);
+      } else {
+        setShowBookingDialog(true);
+      }
     }, 800);
   };
   
