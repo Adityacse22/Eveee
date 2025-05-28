@@ -3,58 +3,18 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import StationCard from './StationCard';
 import FilterBar from '../ui/FilterBar';
-
-// Enhanced station data with more realistic information
-const stationData = [
-  {
-    id: 1,
-    name: 'Evee Supercharger',
-    distance: '0.8 miles',
-    chargerTypes: ['DC Fast', 'Type 2'],
-    price: '$0.45',
-    available: true,
-    rating: 5
-  },
-  {
-    id: 2,
-    name: 'ChargePoint Station',
-    distance: '1.2 miles',
-    chargerTypes: ['AC', 'CCS'],
-    price: '$0.30',
-    available: true,
-    rating: 4
-  },
-  {
-    id: 3,
-    name: 'EVgo Fast Charging',
-    distance: '2.5 miles',
-    chargerTypes: ['DC Fast', 'CCS', 'CHAdeMO'],
-    price: '$0.50',
-    available: false,
-    rating: 4
-  },
-  {
-    id: 4,
-    name: 'Evee Downtown Hub',
-    distance: '3.1 miles',
-    chargerTypes: ['Type 2', 'CCS', 'CHAdeMO'],
-    price: '$0.38',
-    available: true,
-    rating: 5
-  },
-  {
-    id: 5,
-    name: 'GreenCharge Station',
-    distance: '4.0 miles',
-    chargerTypes: ['AC', 'Type 2'],
-    price: '$0.35',
-    available: false,
-    rating: 3
-  }
-];
+import { useStations } from '@/hooks/useStations';
+import { Loader2 } from 'lucide-react';
 
 const StationList: React.FC = () => {
-  const [visibleStations, setVisibleStations] = useState(stationData);
+  const { data: stations, isLoading, error } = useStations();
+  const [visibleStations, setVisibleStations] = useState(stations || []);
+  
+  React.useEffect(() => {
+    if (stations) {
+      setVisibleStations(stations);
+    }
+  }, [stations]);
   
   // Animation variants
   const containerVariants = {
@@ -79,6 +39,36 @@ const StationList: React.FC = () => {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex justify-center items-center py-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center space-x-2 text-white"
+        >
+          <Loader2 className="h-6 w-6 animate-spin text-ev-blue" />
+          <span>Loading charging stations...</span>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full text-center py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-400"
+        >
+          <p>Error loading stations: {error.message}</p>
+          <p className="text-sm text-white/50 mt-2">Please try refreshing the page</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -112,18 +102,31 @@ const StationList: React.FC = () => {
         initial="hidden"
         animate="visible"
       >
-        {visibleStations.map((station) => (
-          <motion.div key={station.id} variants={itemVariants}>
-            <StationCard
-              name={station.name}
-              distance={station.distance}
-              chargerTypes={station.chargerTypes}
-              price={station.price}
-              available={station.available}
-              rating={station.rating}
-            />
-          </motion.div>
-        ))}
+        {visibleStations.map((station) => {
+          // Calculate distance (mock calculation for now)
+          const distance = `${(Math.random() * 5).toFixed(1)} miles`;
+          
+          // Get available connectors
+          const availableConnectors = station.connectors.filter(c => c.available);
+          const chargerTypes = station.connectors.map(c => c.connector_type);
+          
+          return (
+            <motion.div key={station.id} variants={itemVariants}>
+              <StationCard
+                stationId={station.id}
+                name={station.name}
+                distance={distance}
+                chargerTypes={chargerTypes}
+                price={`$${station.price_per_kwh}`}
+                available={station.available && availableConnectors.length > 0}
+                rating={station.rating}
+                availablePorts={availableConnectors.length}
+                totalPorts={station.connectors.length}
+                address={station.address}
+              />
+            </motion.div>
+          );
+        })}
       </motion.div>
       
       {/* Idle animation elements */}

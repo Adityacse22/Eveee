@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Facebook, Twitter, Linkedin, Mail } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,20 +25,12 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulating login API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo, just check for non-empty values
-      if (email && password) {
-        toast.success("Successfully logged in!");
-        localStorage.setItem('user', JSON.stringify({ email }));
-        navigate('/');
-      } else {
-        toast.error("Invalid email or password");
-      }
-    } catch (error) {
+      await signIn(email, password);
+      toast.success("Successfully logged in!");
+      navigate('/');
+    } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Failed to login. Please try again.");
+      toast.error(error.message || "Failed to login. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -3,11 +3,15 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Zap, CreditCard, Check, X, Car, Battery } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateBooking } from '@/hooks/useBookings';
+import { useStation } from '@/hooks/useStations';
+import { toast } from 'sonner';
 
 interface BookingFormProps {
+  stationId: string;
   stationName?: string;
   price?: string;
   onBookingComplete?: () => void;
@@ -19,11 +23,15 @@ interface TimeSlot {
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({ 
+  stationId,
   stationName = "Charging Station",
   price = "$0.45",
   onBookingComplete
 }) => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const createBooking = useCreateBooking();
+  const { data: station } = useStation(stationId);
+  
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [duration, setDuration] = useState(30);
@@ -34,18 +42,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
   
   // Generate time slots for the selected date
   const generateTimeSlots = (): TimeSlot[] => {
-    // In a real app, this would come from an API based on the selected date
     const slots: TimeSlot[] = [];
     const startHour = 8;
     const endHour = 20;
     
     for (let hour = startHour; hour < endHour; hour++) {
-      // Add two slots per hour (on the hour and half past)
-      const time24h = `${hour}:00`;
       const time12h = `${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`;
       slots.push({ time: time12h, available: Math.random() > 0.3 });
       
-      const halfHour24h = `${hour}:30`;
       const halfHour12h = `${hour > 12 ? hour - 12 : hour}:30 ${hour >= 12 ? 'PM' : 'AM'}`;
       slots.push({ time: halfHour12h, available: Math.random() > 0.3 });
     }
@@ -56,43 +60,95 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const timeSlots = generateTimeSlots();
   const durations = [30, 60, 90, 120];
   const vehicleTypes = ['Tesla', 'Nissan Leaf', 'Chevrolet Bolt', 'BMW i3', 'Ford Mustang Mach-E', 'Other'];
-  const chargerTypes = ['Type 2', 'CCS', 'CHAdeMO', 'Tesla Supercharger'];
+  
+  // Get available charger types from station data
+  const availableChargerTypes = station?.connectors
+    .filter(c => c.available)
+    .map(c => c.connector_type) || [];
+  const uniqueChargerTypes = [...new Set(availableChargerTypes)];
 
   // Calculate estimated cost based on duration and price
   const priceNumber = parseFloat(price?.replace('$', '') || '0.45');
-  const estimatedCost = ((priceNumber * duration) / 60 * (vehicleType === 'Tesla' ? 9 : 7)).toFixed(2); // kW rate * hours * estimated kW
+  const estimatedCost = ((priceNumber * duration) / 60 * (vehicleType === 'Tesla' ? 9 : 7)).toFixed(2);
   
-  const handleBookNow = () => {
+  const handleBookNow = async () => {
+    if (!user) {
+      toast.error("Please log in to make a booking");
+      return;
+    }
+
     if (!selectedDate || !selectedTime || !vehicleType || !chargerType) {
-      toast({
-        title: "Booking Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    // Find the selected connector
+    const selectedConnector = station?.connectors.find(
+      c => c.connector_type === chargerType && c.available
+    );
+    
+    if (!selectedConnector) {
+      toast.error("Selected charger type is not available");
       return;
     }
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setBookingStep(2); // Move to confirmation step
+    try {
+      // Convert time to 24h format for database
+      const [time, period] = selectedTime.split(' ');
+      const [hours, minutes] = time.split(':');
+      let hour24 = parseInt(hours);
+      if (period === 'PM' && hour24 !== 12) hour24 += 12;
+      if (period === 'AM' && hour24 === 12) hour24 = 0;
       
-      // Show success toast
-      toast({
-        title: "Booking Confirmed!",
-        description: `Your booking at ${stationName} on ${selectedDate} at ${selectedTime} has been confirmed.`,
+      const startTime = `${hour24.toString().padStart(2, '0')}:${minutes}:00`;
+      const endHour = hour24 + Math.floor(duration / 60);
+      const endMinute = parseInt(minutes) + (duration % 60);
+      const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}:00`;
+      
+      await createBooking.mutateAsync({
+        user_id: user.id,
+        station_id: stationId,
+        connector_id: selectedConnector.id,
+        booking_date: selectedDate,
+        start_time: startTime,
+        end_time: endTime,
+        duration_hours: duration / 60,
+        total_price: parseFloat(estimatedCost),
+        status: 'pending',
+        special_requests: `Vehicle: ${vehicleType}`
       });
       
-      // After showing confirmation for a moment, close the dialog
+      setBookingStep(2);
+      
+      // Close dialog after confirmation
       setTimeout(() => {
         if (onBookingComplete) {
           onBookingComplete();
         }
       }, 3000);
-    }, 1500);
+    } catch (error) {
+      console.error('Booking error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (!user) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-white/70 mb-4">Please log in to make a booking</p>
+        <Button 
+          onClick={onBookingComplete}
+          variant="outline"
+          className="border-white/20 hover:bg-white/10 text-white"
+        >
+          Close
+        </Button>
+      </div>
+    );
+  }
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center mb-6">
@@ -214,7 +270,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 <SelectValue placeholder="Select charger type" />
               </SelectTrigger>
               <SelectContent>
-                {chargerTypes.map((type) => (
+                {uniqueChargerTypes.map((type) => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>

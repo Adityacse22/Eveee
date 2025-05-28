@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Facebook, Twitter, Linkedin, Mail, CheckCircle } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
 
 const SignUp: React.FC = () => {
   const [name, setName] = useState('');
@@ -15,6 +15,7 @@ const SignUp: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +38,12 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulating signup API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success("Account created successfully!");
-      localStorage.setItem('user', JSON.stringify({ email, name }));
+      await signUp(email, password, name);
+      toast.success("Account created successfully! Please check your email to verify your account.");
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error("Failed to create account. Please try again.");
+      toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
     }
