@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import StationCard from './StationCard';
@@ -7,6 +6,7 @@ import { useStations } from '@/hooks/useStations';
 import { Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StationListProps {
   onStationSelect?: (stationId: string, stationName: string) => void;
@@ -25,7 +25,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
     }
   }, [stations]);
 
-  // Get user location from localStorage or request it
   useEffect(() => {
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
@@ -69,7 +68,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
     try {
       let currentLocation = userLocation;
       
-      // If no location is available, try to get it
       if (!currentLocation) {
         try {
           currentLocation = await getCurrentLocation();
@@ -83,53 +81,26 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
 
       console.log('Searching with location:', currentLocation);
       
-      // Increased radius to 20km (20000 meters) for wider search area
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${currentLocation.lat},${currentLocation.lng}&radius=20000&type=gas_station&keyword=electric%20vehicle%20charging&key=AIzaSyCXo5DViPSCe7Ngv9xob9VaAS1kH7HyiPs`,
-        {
-          method: 'GET',
+      const { data, error } = await supabase.functions.invoke('nearby-stations', {
+        body: {
+          latitude: currentLocation.lat,
+          longitude: currentLocation.lng,
+          radius: 20000
         }
-      );
+      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      console.log('Google Places API response:', data);
+      console.log('Edge Function response:', data);
       
       if (data.status === 'OK' && data.results) {
-        const formattedStations = data.results.map((place: any) => ({
-          id: place.place_id,
-          name: place.name,
-          address: place.vicinity,
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng,
-          price_per_kwh: 0.40, // Default price
-          available: place.business_status === 'OPERATIONAL',
-          rating: place.rating || 4.0,
-          total_reviews: place.user_ratings_total || 0,
-          connectors: [
-            {
-              id: `${place.place_id}_1`,
-              station_id: place.place_id,
-              connector_type: 'Type 2',
-              power_output: 22,
-              available: true,
-              created_at: new Date().toISOString()
-            }
-          ]
-        }));
-
-        setNearbyStations(formattedStations);
-        setVisibleStations(formattedStations);
-        toast.success(`Found ${formattedStations.length} nearby charging stations within 20km`);
-      } else if (data.status === 'ZERO_RESULTS') {
-        toast.error("No nearby charging stations found within 20km");
-        setVisibleStations(stations || []);
+        setNearbyStations(data.results);
+        setVisibleStations(data.results);
+        toast.success(`Found ${data.count} nearby charging stations within 20km`);
       } else {
-        console.error('Google Places API error:', data);
-        toast.error(`Search failed: ${data.status}`);
+        toast.error(data.message || "No nearby charging stations found within 20km");
         setVisibleStations(stations || []);
       }
     } catch (error) {
@@ -147,9 +118,8 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
     toast.success("Showing local stations");
   };
 
-  // Calculate distance between two coordinates
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Radius of the Earth in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -157,7 +127,7 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distance in km
+    return R * c;
   };
   
   // Animation variants
@@ -236,7 +206,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
         </motion.span>
       </motion.div>
 
-      {/* Search buttons */}
       <motion.div className="flex gap-2 mb-4" variants={itemVariants}>
         <Button
           onClick={searchNearbyStations}
@@ -272,7 +241,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
         animate="visible"
       >
         {visibleStations.map((station) => {
-          // Calculate distance if user location is available
           let distance = `${(Math.random() * 5).toFixed(1)} miles`;
           if (userLocation && station.latitude && station.longitude) {
             const distanceKm = calculateDistance(
@@ -284,7 +252,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
             distance = `${distanceKm.toFixed(1)} km`;
           }
           
-          // Get available connectors
           const availableConnectors = station.connectors.filter(c => c.available);
           const chargerTypes = station.connectors.map(c => c.connector_type);
           
@@ -308,7 +275,6 @@ const StationList: React.FC<StationListProps> = ({ onStationSelect }) => {
         })}
       </motion.div>
       
-      {/* Idle animation elements */}
       {visibleStations.length > 0 && (
         <motion.div
           className="mt-6 text-center"
