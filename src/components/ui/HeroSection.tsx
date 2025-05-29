@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
@@ -48,20 +49,20 @@ const HeroSection: React.FC = () => {
         }}
       />
       
-      {/* Distant city skyline */}
+      {/* Abstract geometric shapes as background */}
       <motion.div 
-        className="absolute bottom-0 left-0 right-0 h-[40vh] z-0 bg-cover bg-bottom opacity-20"
+        className="absolute bottom-0 left-0 right-0 h-[40vh] z-0 opacity-20"
         style={{ 
-          backgroundImage: 'url("https://i.imgur.com/NhGUdKa.png")',
+          background: 'linear-gradient(45deg, rgba(30, 174, 219, 0.2) 0%, rgba(34, 197, 94, 0.1) 50%, transparent 100%)',
           transform: `translateY(${scrollY * 0.1}px) translateX(${mousePosition.x * -10}px)`
         }}
       />
       
-      {/* Charging station silhouette */}
+      {/* Charging station inspired geometric design */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[25vh] z-1 bg-contain bg-bottom bg-no-repeat opacity-40"
+        className="absolute bottom-0 left-0 right-0 h-[25vh] z-1 opacity-40"
         style={{ 
-          backgroundImage: 'url("https://i.imgur.com/CZGnZ8i.png")',
+          background: 'linear-gradient(to top, rgba(30, 174, 219, 0.3) 0%, rgba(30, 174, 219, 0.1) 50%, transparent 100%)',
           transform: `translateY(${scrollY * 0.05}px) translateX(${mousePosition.x * -30}px)`
         }}
       />
